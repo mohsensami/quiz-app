@@ -1,18 +1,46 @@
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
 
 function App() {
+    const [amount, setAmount] = useState(10);
+    const [category, setCategory] = useState(20);
+    const [difficulty, setDifficulty] = useState('');
+    const [type, setType] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [data, setData] = useState([]);
+    const handleSubmit = (e: React.MouseEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log('handleSubmit');
+        setIsLoading(true);
+        fetch(`https://opentdb.com/api.php?amount=${amount}&category=${category}&difficulty=${difficulty}&type=${type}`)
+            .then((response) => response.json())
+            .then((data) => {
+                setData(data.results);
+                setIsLoading(false);
+            });
+    };
     return (
         <div className="App">
             <div>
-                <form>
+                <form onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor="nums">Number of Questions:</label>
-                        <input type="text" />
+                        <input
+                            onChange={(e: any) => setAmount(e.target.value)}
+                            value={amount}
+                            type="number"
+                            min={1}
+                            max={50}
+                        />
                     </div>
                     <div>
                         <label htmlFor="trivia_category">Select Category: </label>
-                        <select name="trivia_category" className="form-control">
+                        <select
+                            defaultValue={category}
+                            onChange={(e: any) => setCategory(e.target.value)}
+                            name="trivia_category"
+                            className="form-control"
+                        >
                             <option value="any">Any Category</option>
                             <option value="9">General Knowledge</option>
                             <option value="10">Entertainment: Books</option>
@@ -42,7 +70,12 @@ function App() {
                     </div>
                     <div>
                         <label htmlFor="trivia_difficulty">Select Difficulty: </label>
-                        <select name="trivia_difficulty" className="form-control">
+                        <select
+                            onChange={(e: any) => setDifficulty(e.target.value)}
+                            defaultValue={difficulty}
+                            name="trivia_difficulty"
+                            className="form-control"
+                        >
                             <option value="any">Any Difficulty</option>
                             <option value="easy">Easy</option>
                             <option value="medium">Medium</option>
@@ -51,14 +84,24 @@ function App() {
                     </div>
                     <div>
                         <label htmlFor="trivia_type">Select Type: </label>
-                        <select name="trivia_type" className="form-control">
+                        <select
+                            onChange={(e: any) => setType(e.target.value)}
+                            defaultValue={type}
+                            name="trivia_type"
+                            className="form-control"
+                        >
                             &gt;
                             <option value="any">Any Type</option>
                             <option value="multiple">Multiple Choice</option>
                             <option value="boolean">True / False</option>
                         </select>
                     </div>
+                    <div>
+                        <button>Submit</button>
+                    </div>
                 </form>
+                {isLoading && <h1>Loading ...</h1>}
+                {JSON.stringify(data)}
             </div>
         </div>
     );
