@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './App.css';
+import shuffle from './utils/shuffle';
 
 function App() {
     const [amount, setAmount] = useState(10);
@@ -8,9 +9,10 @@ function App() {
     const [type, setType] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState<any>([]);
-    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [currentQuestion, setCurrentQuestion] = useState(1);
     const [showScore, setShowScore] = useState(false);
     const [score, setScore] = useState(0);
+    const [answer, setAnswer] = useState('');
     const handleSubmit = (e: React.MouseEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log('handleSubmit');
@@ -18,32 +20,59 @@ function App() {
         fetch(`https://opentdb.com/api.php?amount=${amount}&category=${category}&difficulty=${difficulty}&type=${type}`)
             .then((response) => response.json())
             .then((data) => {
-                setData(data);
-                console.log(data);
+                const { response_code, results } = data;
+                results.forEach((element: any) => {
+                    element.options = shuffle([element.correct_answer, ...element.incorrect_answers]);
+                });
+                console.log(results);
+                setData(results);
                 setIsLoading(false);
             });
     };
-    const handleClick = () => {
+    const handleNextClick = (correct_answer: any) => {
+        console.log(correct_answer);
+        console.log(answer);
+        if (correct_answer === answer) {
+            setScore((prev) => prev + 1);
+        }
         setCurrentQuestion((prev) => prev + 1);
     };
+    const handlePreviousClick = () => {
+        setCurrentQuestion((prev) => prev - 1);
+    };
+    const handleShowResult = () => {
+        setData([]);
+    };
+
     return (
         <div className="App">
             <div>
-                {data?.results?.length ? (
+                {data?.length ? (
                     <div>
-                        <h2>{data?.results[currentQuestion].question}</h2>
-                        <label htmlFor={data?.results[currentQuestion].correct_answer}>
-                            {data?.results[currentQuestion].correct_answer}
-                            <input id={data?.results[currentQuestion].correct_answer} type="checkbox" />
-                        </label>
-                        {data?.results[currentQuestion].incorrect_answers.map((item: any) => (
+                        {currentQuestion} <br />
+                        {amount} <br />
+                        {score}
+                        <h2 dangerouslySetInnerHTML={{ __html: data[currentQuestion - 1].question }}></h2>
+                        {data[currentQuestion - 1].options.map((item: any) => (
                             <label key={item} htmlFor={item}>
                                 {item}
-                                <input id={item} type="checkbox" />
+                                <input
+                                    onChange={(e) => setAnswer(e.target.value)}
+                                    value={item}
+                                    id={item}
+                                    type="checkbox"
+                                />
                             </label>
                         ))}
                         <div>
-                            <button onClick={handleClick}>Next</button>
+                            {/* {currentQuestion > 0 && <button onClick={handlePreviousClick}>Previous</button>} */}
+
+                            {currentQuestion < amount && (
+                                <button onClick={() => handleNextClick(data[currentQuestion - 1].correct_answer)}>
+                                    Next
+                                </button>
+                            )}
+                            {<button onClick={handleShowResult}>Show Result</button>}
                         </div>
                     </div>
                 ) : (
