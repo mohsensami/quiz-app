@@ -74,7 +74,7 @@ function App() {
                                         Next
                                     </button>
                                 )}
-                                {currentQuestion === amount && <button onClick={handleShowResult}>Show Result</button>}
+                                {currentQuestion == amount && <button onClick={handleShowResult}>Show Result</button>}
                             </div>
                         </div>
                     ) : (
