@@ -10,8 +10,8 @@ function FormBegin({
     setDifficulty,
 }) {
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
+        <div className="bg-gray-100 w-3/4 mx-auto p-8">
+            <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="nums">Number of Questions:</label>
                     <input
@@ -86,7 +86,7 @@ function FormBegin({
                     </select>
                 </div>
                 <div>
-                    <button>Submit</button>
+                    <button className="bg-cyan-500 px-4 py-2 text-white w-full mt-4">Submit</button>
                 </div>
             </form>
         </div>
