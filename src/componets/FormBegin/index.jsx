@@ -8,6 +8,8 @@ function FormBegin({
     setType,
     difficulty,
     setDifficulty,
+    isLoading,
+    setIsLoading,
 }) {
     return (
         <div className="bg-gray-100 w-3/4 mx-auto p-8">
@@ -86,7 +88,9 @@ function FormBegin({
                     </select>
                 </div>
                 <div>
-                    <button className="bg-cyan-500 px-4 py-2 text-white w-full mt-4">Submit</button>
+                    <button disabled={isLoading} className="bg-cyan-500 px-4 py-2 text-white w-full mt-4">
+                        {isLoading ? 'Loading...' : 'Submit'}
+                    </button>
                 </div>
             </form>
         </div>

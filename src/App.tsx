@@ -94,10 +94,12 @@ function App() {
                             setType={setType}
                             difficulty={difficulty}
                             setDifficulty={setDifficulty}
+                            isLoading={isLoading}
+                            setIsLoading={setIsLoading}
                         />
                     )}
 
-                    {isLoading && <h1>Loading ...</h1>}
+                    {/* {isLoading && <h1>Loading ...</h1>} */}
                     {/* {JSON.stringify(data)} */}
                 </div>
             </div>
