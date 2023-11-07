@@ -15,6 +15,7 @@ function App() {
     const [showScore, setShowScore] = useState(false);
     const [score, setScore] = useState(0);
     const [answer, setAnswer] = useState('');
+    const [showResult, setShowResult] = useState(false);
     const handleSubmit = (e: React.MouseEvent<HTMLFormElement>) => {
         e.preventDefault();
         console.log('handleSubmit');
@@ -52,36 +53,42 @@ function App() {
                 <div className="bg-gray-100 w-3/4 mx-auto p-8">
                     {data?.length ? (
                         <div>
-                            {currentQuestion} <br />
-                            {amount} <br />
-                            {score}
-                            <h2 dangerouslySetInnerHTML={{ __html: data[currentQuestion - 1].question }}></h2>
-                            <div className="flex justify-between">
-                                {data[currentQuestion - 1].options.map((item: any) => (
-                                    <label className="flex gap-1" key={item} htmlFor={item}>
-                                        <input
-                                            onChange={(e) => setAnswer(e.target.value)}
-                                            value={item}
-                                            id={item}
-                                            type="checkbox"
-                                        />
-                                        {item}
-                                    </label>
-                                ))}
-                            </div>
-                            <div>
-                                {/* {currentQuestion > 0 && <button onClick={handlePreviousClick}>Previous</button>} */}
-
-                                {currentQuestion < amount && (
-                                    <button
-                                        className="bg-cyan-500 px-4 py-2 text-white w-full mt-4"
-                                        onClick={() => handleNextClick(data[currentQuestion - 1].correct_answer)}
-                                    >
-                                        Next
-                                    </button>
-                                )}
-                                {currentQuestion == amount && <button onClick={handleShowResult}>Show Result</button>}
-                            </div>
+                            {!showResult ? (
+                                <div>
+                                    <h2 dangerouslySetInnerHTML={{ __html: data[currentQuestion - 1].question }}></h2>
+                                    <div className="flex justify-between">
+                                        {data[currentQuestion - 1].options.map((item: any) => (
+                                            <label className="flex gap-1" key={item} htmlFor={item}>
+                                                <input
+                                                    onChange={(e) => setAnswer(e.target.value)}
+                                                    value={item}
+                                                    id={item}
+                                                    type="checkbox"
+                                                />
+                                                {item}
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {currentQuestion < amount && (
+                                        <button
+                                            className="bg-cyan-500 px-4 py-2 text-white w-full mt-4"
+                                            onClick={() => handleNextClick(data[currentQuestion - 1].correct_answer)}
+                                        >
+                                            Next
+                                        </button>
+                                    )}
+                                    {currentQuestion == amount && (
+                                        <button
+                                            onClick={() => setShowResult(true)}
+                                            className="bg-cyan-500 px-4 py-2 text-white w-full mt-4"
+                                        >
+                                            Show Result
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center text-2xl">Your score is: {score}</div>
+                            )}
                         </div>
                     ) : (
                         <FormBegin
