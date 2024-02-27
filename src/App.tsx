@@ -1,117 +1,100 @@
-import { useState } from 'react';
-import './App.css';
-import shuffle from './utils/shuffle';
-import Layout from './componets/Layout';
-import FormBegin from './componets/FormBegin';
+import React, { useState } from 'react';
+import { fetchQuizQuestions } from './API';
+// Components
+import QuestionCard from './components/QuestionCard';
+// types
+import { QuestionsState, Difficulty } from './API';
+// Styles
+import { GlobalStyle, Wrapper } from './App.styles';
 
-function App() {
-    const [amount, setAmount] = useState(10);
-    const [category, setCategory] = useState(20);
-    const [difficulty, setDifficulty] = useState('');
-    const [type, setType] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [data, setData] = useState<any>([]);
-    const [currentQuestion, setCurrentQuestion] = useState(1);
-    const [showScore, setShowScore] = useState(false);
+export type AnswerObject = {
+    question: string;
+    answer: string;
+    correct: boolean;
+    correctAnswer: string;
+};
+
+const TOTAL_QUESTIONS = 10;
+
+const App: React.FC = () => {
+    const [loading, setLoading] = useState(false);
+    const [questions, setQuestions] = useState<QuestionsState[]>([]);
+    const [number, setNumber] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<AnswerObject[]>([]);
     const [score, setScore] = useState(0);
-    const [answer, setAnswer] = useState('');
-    const [showResult, setShowResult] = useState(false);
-    const handleSubmit = (e: React.MouseEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log('handleSubmit');
-        setIsLoading(true);
-        fetch(`https://opentdb.com/api.php?amount=${amount}&category=${category}&difficulty=${difficulty}&type=${type}`)
-            .then((response) => response.json())
-            .then((data) => {
-                const { response_code, results } = data;
-                results.forEach((element: any) => {
-                    element.options = shuffle([element.correct_answer, ...element.incorrect_answers]);
-                });
-                console.log(results);
-                setData(results);
-                setIsLoading(false);
-            });
+    const [gameOver, setGameOver] = useState(true);
+
+    const startTrivia = async () => {
+        setLoading(true);
+        setGameOver(false);
+        const newQuestions = await fetchQuizQuestions(TOTAL_QUESTIONS, Difficulty.EASY);
+        setQuestions(newQuestions);
+        setScore(0);
+        setUserAnswers([]);
+        setNumber(0);
+        setLoading(false);
     };
-    const handleNextClick = (correct_answer: any) => {
-        console.log(correct_answer);
-        console.log(answer);
-        if (correct_answer === answer) {
-            setScore((prev) => prev + 1);
+
+    const checkAnswer = (e: any) => {
+        if (!gameOver) {
+            // User's answer
+            const answer = e.currentTarget.value;
+            // Check answer against correct answer
+            const correct = questions[number].correct_answer === answer;
+            // Add score if answer is correct
+            if (correct) setScore((prev) => prev + 1);
+            // Save the answer in the array for user answers
+            const answerObject = {
+                question: questions[number].question,
+                answer,
+                correct,
+                correctAnswer: questions[number].correct_answer,
+            };
+            setUserAnswers((prev) => [...prev, answerObject]);
         }
-        setCurrentQuestion((prev) => prev + 1);
     };
-    const handlePreviousClick = () => {
-        setCurrentQuestion((prev) => prev - 1);
-    };
-    const handleShowResult = () => {
-        setData([]);
+
+    const nextQuestion = () => {
+        // Move on to the next question if not the last question
+        const nextQ = number + 1;
+
+        if (nextQ === TOTAL_QUESTIONS) {
+            setGameOver(true);
+        } else {
+            setNumber(nextQ);
+        }
     };
 
     return (
-        <Layout>
-            <div className="App">
-                <div className="bg-gray-100 w-3/4 mx-auto p-8">
-                    {data?.length ? (
-                        <div>
-                            {!showResult ? (
-                                <div>
-                                    <h2 dangerouslySetInnerHTML={{ __html: data[currentQuestion - 1].question }}></h2>
-                                    <div className="flex justify-between">
-                                        {data[currentQuestion - 1].options.map((item: any) => (
-                                            <label className="flex gap-1" key={item} htmlFor={item}>
-                                                <input
-                                                    onChange={(e) => setAnswer(e.target.value)}
-                                                    value={item}
-                                                    id={item}
-                                                    type="checkbox"
-                                                />
-                                                {item}
-                                            </label>
-                                        ))}
-                                    </div>
-                                    {currentQuestion < amount && (
-                                        <button
-                                            className="bg-cyan-500 px-4 py-2 text-white w-full mt-4"
-                                            onClick={() => handleNextClick(data[currentQuestion - 1].correct_answer)}
-                                        >
-                                            Next
-                                        </button>
-                                    )}
-                                    {currentQuestion == amount && (
-                                        <button
-                                            onClick={() => setShowResult(true)}
-                                            className="bg-cyan-500 px-4 py-2 text-white w-full mt-4"
-                                        >
-                                            Show Result
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="text-center text-2xl">Your score is: {score}</div>
-                            )}
-                        </div>
-                    ) : (
-                        <FormBegin
-                            handleSubmit={handleSubmit}
-                            amount={amount}
-                            setAmount={setAmount}
-                            category={category}
-                            setCategory={setCategory}
-                            type={type}
-                            setType={setType}
-                            difficulty={difficulty}
-                            setDifficulty={setDifficulty}
-                            isLoading={isLoading}
-                            setIsLoading={setIsLoading}
-                        />
-                    )}
-
-                    {/* {isLoading && <h1>Loading ...</h1>} */}
-                    {/* {JSON.stringify(data)} */}
-                </div>
-            </div>
-        </Layout>
+        <>
+            <GlobalStyle />
+            <Wrapper>
+                <h1>REACT QUIZ</h1>
+                {gameOver || userAnswers.length === TOTAL_QUESTIONS ? (
+                    <button className="start" onClick={startTrivia}>
+                        Start
+                    </button>
+                ) : null}
+                {!gameOver ? <p className="score">Score: {score}</p> : null}
+                {loading ? <p>Loading Questions...</p> : null}
+                {!loading && !gameOver && (
+                    <QuestionCard
+                        questionNr={number + 1}
+                        totalQuestions={TOTAL_QUESTIONS}
+                        question={questions[number].question}
+                        answers={questions[number].answers}
+                        userAnswer={userAnswers ? userAnswers[number] : undefined}
+                        callback={checkAnswer}
+                    />
+                )}
+                {!gameOver && !loading && userAnswers.length === number + 1 && number !== TOTAL_QUESTIONS - 1 ? (
+                    <button className="next" onClick={nextQuestion}>
+                        Next Question
+                    </button>
+                ) : null}
+            </Wrapper>
+        </>
     );
-}
+};
 
 export default App;
